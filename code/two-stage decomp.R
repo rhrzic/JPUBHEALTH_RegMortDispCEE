@@ -10,7 +10,7 @@ Theil <- function(y) {
   return(Ttotal)
 }
 
-Theil_w <- function(y, pop) {
+Theil.w <- function(y, pop) {
   
   y_ave_w <- weighted.mean(y, pop)
   N <- sum(pop)
@@ -24,9 +24,9 @@ CV <- function(y) {
   
   y_ave <- mean(y)
   
-  var <- var(y)
+  sd <- sd(y)
   
-  CVtotal = var / y_ave^2
+  CVtotal = sd / y_ave
   
   return(CVtotal)
   
@@ -77,6 +77,38 @@ onestage.Theil.decomp <- function(df, macroregion, ple) {
   return(result)
 }
 
+
+Theil.bygroup <- function(df, macroregion, ple) {
+  
+  y_ave <- mean(df[[ple]], na.rm = T)
+  
+  N <- length(df[[ple]])
+  
+  Ttotal = Theil(df[[ple]])
+  
+  by_macroregion <- split(df, df[[macroregion]])
+  
+  Ni <- sapply(by_macroregion, function(x){length(x[[ple]])})
+  yi_ave <- sapply(by_macroregion, function(x){mean(x[[ple]], na.rm = T)})
+  
+  Tmi <- sapply(by_macroregion, function(x){
+    
+    Theil(x[[ple]])
+  })
+  
+  by.group = (Ni/N) * (yi_ave/y_ave) * Tmi
+  
+  result = data.frame(group = names(by.group), Theil = by.group)
+  
+  
+  #Twithin <-  sum( (Ni/N) * (yi_ave/y_ave) * Tmi)
+  #Tbetween <-  sum( (Ni/N) * (yi_ave/y_ave) * log( yi_ave / y_ave ) )
+  
+  #result <- data.frame(Tbetween = Tbetween, Twithin = Twithin, Ttotal = Ttotal, Additive = Twithin + Tbetween)
+  
+  return(result)
+}
+
 onestage.Theil.decomp.w <- function(df, macroregion, ple, pop) {
   
   y_ave <- weighted.mean(df[[ple]], df[[pop]])
@@ -103,6 +135,39 @@ onestage.Theil.decomp.w <- function(df, macroregion, ple, pop) {
   
   return(result)
 }
+
+Theil.bygroup.w <- function(df, macroregion, ple, pop) {
+  
+  y_ave <- weighted.mean(df[[ple]], df[[pop]])
+  
+  N <- sum(df[[pop]])
+  
+  Ttotal = Theil_w(df[[ple]], df[[pop]])
+  
+  by_macroregion <- split(df, df[[macroregion]])
+  
+  Ni <- sapply(by_macroregion, function(x){sum(x[[pop]])})
+  
+  yi_ave <- sapply(by_macroregion, function(x){weighted.mean(x[[ple]], x[[pop]])})
+  
+  Tmi <- sapply(by_macroregion, function(x){
+    
+    Theil_w(x[[ple]], x[[pop]])
+  })
+  
+  by.group = (Ni/N) * (yi_ave/y_ave) * Tmi
+  
+  result = data.frame(group = names(by.group), Theil = by.group)
+  
+  
+  #Twithin <-  sum( (Ni/N) * (yi_ave/y_ave) * Tmi)
+  #Tbetween <-  sum( (Ni/N) * (yi_ave/y_ave) * log( yi_ave / y_ave ) )
+  
+ # result <- data.frame(Tbetween = Tbetween, Twithin = Twithin, Ttotal = Ttotal, Additive = Twithin + Tbetween)
+  
+  return(result)
+}
+
 
 onestage.CV.decomp <- function(df, macroregion, ple) {
   
